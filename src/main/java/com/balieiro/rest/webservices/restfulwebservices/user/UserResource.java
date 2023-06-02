@@ -1,6 +1,10 @@
 package com.balieiro.rest.webservices.restfulwebservices.user;
 
+import  static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
 import jakarta.validation.Valid;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -18,7 +22,7 @@ public class UserResource {
     }
 
     @GetMapping("/users")
-    public List<User> findAll(){
+    public List<User> retrieveAllUsers(){
         return service.findAll();
     }
 
@@ -29,6 +33,21 @@ public class UserResource {
             throw new UserNotFoundException("id: " + id);
         }
         return  user;
+    }
+
+    /* Este metodo é o mesmo que o de cima, mas ele retorna um link*/
+    @GetMapping("link//users/{id}")
+    public EntityModel<User> retrieveUserLink(@PathVariable int id){
+        User user = service.findOne(id);
+        if(user == null)
+            throw new UserNotFoundException("id: " + id);
+
+        EntityModel<User> entityModel = EntityModel.of(user);
+
+        WebMvcLinkBuilder link = linkTo(methodOn(this.getClass()).retrieveAllUsers());
+        entityModel.add(link.withRel("all-users"));
+
+        return  entityModel;
     }
 
     @DeleteMapping("/users/{id}")
